@@ -37,9 +37,17 @@ function writeData() {
     $personal_name = $_POST['personal_name'];           //投稿者の名前を代入
     $contents = $_POST['contents'];                     //内容を代入
     $contents = nl2br($contents);
+    $todayh[year] = 2020;
+    $todayh[mon] = 6;
+    $todayh[day] = 10;
+    $d = $todayh[day];
+    $m = $todayh[mon];
+    $y = $todayh[year];
+    
 
     //書き込んだ際のテンプレート
     $data = "<hr>\n";
+    $data = $data."<p>投稿日時:".$todayh[year]."年".$todayh[mon]."月".$todayh[day]."日</p>\n";//投稿日時を表示
     $data = $data."<p>投稿者:".$personal_name."</p>\n"; //投稿者の名前を表示
     $data = $data."<p>内容:</p>\n";                     //前置きの表示
     $data = $data."<p>".$contents."</p>\n";             //書き込まれた内容の表示
@@ -63,7 +71,7 @@ function writeData() {
         }
     }
 
-    fclose($fp);                                        //ファイルを閉じる
+    fclose($fp);                                        //ファイルを閉じる           
 
     // ブラウザのリロード対策
     $redirect_url = $_SERVER['HTTP_REFERER'];
