@@ -74,7 +74,7 @@ function writeData() {
 
     fclose($fp);                                        //ファイルを閉じる           
 
-    // ブラウザのリロード対策
+    // ブラウザのリロード対策  
     $redirect_url = $_SERVER['HTTP_REFERER'];
     header("Location: $redirect_url");
     exit;
@@ -104,6 +104,15 @@ exit;
 readData();
 
 ?>
+<style>
 
+body {
+  font-family:'Lato', sans-serif;
+  font-size: 21px;
+  padding: 20px;
+  background: #00ffff;
+}
+
+</style>
 </body>
 </html>
