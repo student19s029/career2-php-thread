@@ -17,8 +17,14 @@
 
 <h2>スレッド</h2>
 
+<form method="POST" action="<?php print($_SERVER['PHP_SELF']) ?>">
+    <inpud type="hidden" name="method" value="DELETE">
+    <button type="submit">投稿を全削除する</button>
+</form>
+
 <?php
 
+date_default_timezone_set('Asia/Tokyo');
 const THREAD_FILE = 'thread.txt';      //THREAD_FILEに代入
 
 function readData() {                  //thread.txtに書き込む
@@ -37,17 +43,12 @@ function writeData() {
     $personal_name = $_POST['personal_name'];           //投稿者の名前を代入
     $contents = $_POST['contents'];                     //内容を代入
     $contents = nl2br($contents);
-    $todayh[year] = 2020;
-    $todayh[mon] = 6;
-    $todayh[day] = 10;
-    $d = $todayh[day];
-    $m = $todayh[mon];
-    $y = $todayh[year];
+
     
 
     //書き込んだ際のテンプレート
     $data = "<hr>\n";
-    $data = $data."<p>投稿日時:".$todayh[year]."年".$todayh[mon]."月".$todayh[day]."日</p>\n";//投稿日時を表示
+    $data = $data."<p>投稿日時: ".date("Y/m/d H:i:s")."</p>\n";//投稿日時を表示
     $data = $data."<p>投稿者:".$personal_name."</p>\n"; //投稿者の名前を表示
     $data = $data."<p>内容:</p>\n";                     //前置きの表示
     $data = $data."<p>".$contents."</p>\n";             //書き込まれた内容の表示
@@ -80,10 +81,25 @@ function writeData() {
     //
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    writeData();
-
+function deleteData()
+{
+   file_put_contents(THREAD_FILE, "a");
+  
 }
+
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+     if (isset($_POST["method"]) && $_POST["method"] === "DELETE") {
+        deleteData();
+    } else {
+        writeData();
+    }
+}
+
+// ブラウザのリロード対策
+$redirect_url = $_SERVER['HTTP_REFERER'];
+header("Location: $redirect_url");
+exit;
 
 readData();
 
