@@ -96,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-// ブラウザのリロード対策
+// ブラウザのリロード対策  
 $redirect_url = $_SERVER['HTTP_REFERER'];
 header("Location: $redirect_url");
 exit;
@@ -106,13 +106,35 @@ readData();
 ?>
 <style>
 
-body {
+body {             /* 背景のデータ*/                 
   font-family:'Lato', sans-serif;
   font-size: 21px;
   padding: 20px;
   background: #00ffff;
 }
 
+.cool-link {
+  margin-right:5px;
+  display: inline-block;
+}
+
+.cool-link a {
+  text-decoration:none;
+  transition: 0.25s ease-in-out;
+  color: #FFF;
+}
+
+.cool-link:hover a{
+  color:#FFD166;
+}
+
+
+
+
 </style>
+
+<script type="module" src="main.js"></script>
+<script>  alert("Hello World!"); </script>
+<script src="javascript.js"></script>
 </body>
 </html>
