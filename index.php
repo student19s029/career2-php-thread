@@ -106,7 +106,7 @@ readData();
 ?>
 <style>
 
-body {             /* 背景のデータ*/                 
+body {             /* 背景のデータ　*/                 
   font-family:'Lato', sans-serif;
   font-size: 21px;
   padding: 20px;
