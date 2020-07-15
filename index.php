@@ -1,109 +1,102 @@
-<html>
+<?php
+
+/**
+ * 職業実践2 - 掲示板アプリ
+ */
+
+require_once './thread.php';
+$thread = new Thread("掲示板App");
+
+session_start();
+
+function setToken()
+{
+    $token = sha1(uniqid(mt_rand(), true));
+    $_SESSION['token'] = $token;
+}
+
+function checkToken()
+{
+    if (empty($_SESSION['token'])) {
+        echo "Sessionが空です";
+        exit;
+    }
+
+    if (($_SESSION['token']) !== $_POST['token']) {
+        echo "不正な投稿です。";
+        exit;
+    }
+
+    $_SESSION['token'] = null;
+}
+
+if (empty($_SESSION['token'])) {
+    setToken();
+}
+?>
+
+<html lang="ja">
 <head>
-    <title>掲示板</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" rel="stylesheet">
+    <title>掲示板App</title>
 </head>
 <body>
 
-<h1>掲示板App</h1>
+<div class="container">
+    <div class="col-md-8">
+        <h1 class="text-center text-primary py-3">掲示板App</h1>
 
-<h2>投稿フォーム</h2>
+        <h2 class="text-muted py-3">投稿フォーム</h2>
+        <form method="POST" action="<?php print($_SERVER['PHP_SELF']) ?>">
+            <input type="text" class="form-control" name="personal_name" placeholder="名前" required><br><br>
+            <textarea name="contents" class="form-control" rows="8" cols="40" placeholder="内容" required></textarea>
+            <br><br>
+            <input type="hidden" name="token" value="<?php echo $_SESSION['token']; ?>">
+            <input class="btn btn-primary"  type="submit" name="btn" value="投稿する">
+        </form>
 
-<form method="POST" action="<?php print($_SERVER['PHP_SELF']) ?>">
-    <input type="text" name="personal_name" placeholder="名前" required><br><br>    
-    <textarea name="contents" rows="8" cols="40" placeholder="内容" required>
-</textarea><br><br>
-    <input type="submit" name="btn" value="投稿する">
-</form>
+        <hr>
 
-<h2>スレッド</h2>
+        <h2 class="text-muted py-3">スレッド</h2>
 
-<form method="POST" action="<?php print($_SERVER['PHP_SELF']) ?>">
-    <inpud type="hidden" name="method" value="DELETE">
-    <button type="submit">投稿を全削除する</button>
-</form>
+        <form method="POST" action="<?php print($_SERVER['PHP_SELF']) ?>">
+            <input type="hidden" name="method" value="DELETE">
+            <button class="btn btn-danger" type="submit">投稿を全削除する</button>
+        </form>
 
+        <h2 class="text-muted py-3">スレッド</h2>
 <?php
 
-date_default_timezone_set('Asia/Tokyo');
-const THREAD_FILE = 'thread.txt';      //THREAD_FILEに代入
+const THREAD_FILE = 'thread.txt';
 
-function readData() {                  //thread.txtに書き込む
-    // ファイルが存在しなければデフォルト空文字のファイルを作成する
-    if (! file_exists(THREAD_FILE)) {
-        $fp = fopen(THREAD_FILE, 'w'); //ファイルを開く
-        fwrite($fp, '');               //ファイルに書き込む
-        fclose($fp);                   //ファイルを閉じる
+require_once './Thread.php';
+$thread = new Thread('掲示板App');
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    if (isset($_POST["method"]) && $_POST["method"] === "DELETE") {
+        $thread->delete();
+    } else {
+        checkToken();
+        $thread->post($_POST['personal_name'], $_POST['contents']);
     }
-
-    $thread_text = file_get_contents(THREAD_FILE);
-    echo $thread_text;                 //thread_textを表示する
 }
 
-function writeData() {
-    $personal_name = $_POST['personal_name'];           //投稿者の名前を代入
-    $contents = $_POST['contents'];                     //内容を代入
-    $contents = nl2br($contents);
-
-    
-
-    //書き込んだ際のテンプレート
-    $data = "<hr>\n";
-    $data = $data."<p>投稿日時: ".date("Y/m/d H:i:s")."</p>\n";//投稿日時を表示
-    $data = $data."<p>投稿者:".$personal_name."</p>\n"; //投稿者の名前を表示
-    $data = $data."<p>内容:</p>\n";                     //前置きの表示
-    $data = $data."<p>".$contents."</p>\n";             //書き込まれた内容の表示
-
-    $fp = fopen(THREAD_FILE, 'a');                      //ファイルを開く
-
-    //LOCK_SH	共有ロック
-    //LOCK_EX	排他的ロック
-    //LOCK_UN	ロック解除
-    //LOCK_NB	ロック中にflock()でブロックさせない
-
-    if ($fp){
-        if (flock($fp, LOCK_EX)){                   //排他的ロック失敗した場合
-            if (fwrite($fp,  $data) === FALSE){         //ファイル書き込みに失敗した場合
-                print('ファイル書き込みに失敗しました');
-            }
-
-            flock($fp, LOCK_UN);
-        }else{                                       //排他的ロック失敗した場合
-            print('ファイルロックに失敗しました');
-        }
-    }
-
-    fclose($fp);                                        //ファイルを閉じる           
-
-    // ブラウザのリロード対策  
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+    // ブラウザのリロード対策
     $redirect_url = $_SERVER['HTTP_REFERER'];
     header("Location: $redirect_url");
     exit;
-    //
 }
 
-function deleteData()
-{
-   file_put_contents(THREAD_FILE, "a");
-  
-}
-
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-     if (isset($_POST["method"]) && $_POST["method"] === "DELETE") {
-        deleteData();
-    } else {
-        writeData();
-    }
-}
-
-// ブラウザのリロード対策  
-$redirect_url = $_SERVER['HTTP_REFERER'];
-header("Location: $redirect_url");
-exit;
-
-readData();
+$list = $thread->getList();
+echo $list;
 
 ?>
+
+ 
 <style>
 
 body {             /* 背景のデータ　*/                 
@@ -132,7 +125,19 @@ body {             /* 背景のデータ　*/
 
 
 </style>
+</div>
+</div>
 
+<!-- JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous">
+</script>
 <script type="module" src="main.js"></script>
 <script>  alert("Hello World!"); </script>
 <script src="javascript.js"></script>
